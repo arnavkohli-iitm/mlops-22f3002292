@@ -7,3 +7,5 @@ mlflow
 fastapi
 uvicorn[standard]
 pydantic
+shap
+fairlearn
