@@ -1,59 +1,33 @@
-# MLOps Week-8 Assignment: ML Security & Data Poisoning
+# MLOps Week-9 Assignment: Model Fairness & Explainability
 
-This project investigates the impact of data poisoning on a machine learning model. The project builds on the previous CI/CD pipeline by introducing experiments as part of the CI process.
+This project expands on the previous MLOps pipeline by introducing concepts of **Bias, Fairness, and Explainability**. The core of this week's work involves analyzing the model's behavior using **SHAP** and **Fairlearn** to ensure transparency and detect potential biases.
 
-The `train.py` script is modified to "poison" the training data by overwriting features with random noise at 0%, 5%, 10%, and 50% levels. The CI pipeline automatically runs these experiments, logs all parameters and metrics to MLFlow, and uses CML to post a comparative report on new Pull Requests.
+The primary work for this assignment is contained in `explainability.ipynb`.
 
 ## 🛡️ New Concepts & Tools
 
-* **Data Poisoning:** A function is added to `train.py` to programmatically overwrite a percentage of the training data with random values before training.
-* **MLFlow Experiment Tracking:** The training script is parameterized to log the `poison_percent` and the resulting `validation_accuracy_clean` for each run. This allows for direct comparison of the attack's impact.
-* **CML Reporting:** A new script (`scripts/generate_report.py`) queries the MLFlow server to build a Markdown comparison table, which is then posted as a PR comment by CML.
+* **Synthetic "Location" Attribute:** A new random feature (values `0` and `1`) was introduced to the Iris dataset to test the model's robustness against irrelevant features.
+* **Fairlearn:** Used to audit the model for bias, treating "location" as a sensitive attribute to ensure predictions remain fair across different groups.
+* **SHAP (SHapley Additive exPlanations):** Utilized to explain individual predictions and understand global feature importance, specifically analyzing why the model classifies certain samples as *Virginica*.
 
 ## 📂 Updated Project Structure
 
-This structure highlights the new files added to enable the experiments and reporting.
+The project structure remains largely the same, with the addition of the analysis notebook:
 
-```
-
-├── .github/workflows/
-│   ├── ci.yml          \# Modified: Runs poisoning experiments and CML report
-├── scripts/
-│   └── generate\_report.py \# New: Queries MLFlow and builds report
-├── train.py              \# Modified: Added poisoning logic and argparse
+```text
+├── explainability.ipynb  # New: Contains Fairlearn and SHAP analysis
+├── data/                 # Data directory
+├── train.py              # Existing training script
 └── ... (other files)
+````
 
-```
+## 🚀 Key Insights & Objectives
 
-## 🤖 Updated CI Pipeline: Test & Validate
+The `explainability.ipynb` notebook addresses the following objectives:
 
-The `ci.yml` pipeline is updated to run the new validation steps:
+1.  **Fairness Analysis:** Incorporates a `MetricFrame` from Fairlearn to compare metrics (Accuracy, Precision, Recall, Selection Rate) across the randomly assigned "location" groups.
+      * *Goal:* Verify that the random "location" attribute does not skew model performance or selection rates.
+2.  **Model Explainability:** Generates SHAP summary and force plots to visualize feature contributions.
+      * *Observation:* The plots for the **Virginica** class demonstrate that the "location" feature has negligible impact on model output, confirming the model correctly identified it as noise.
 
-1.  **DVC Pull:** Fetches the `iris.csv` dataset.
-2.  **Run Pytest:** Runs the existing data and prediction tests.
-3.  **Run Poisoning Experiments:** Executes `train.py` four separate times with `--poison_percent` set to `0.0`, `0.05`, `0.10`, and `0.50`.
-4.  **Generate Report:** Runs `scripts/generate_report.py` to query MLFlow and create a results table.
-5.  **Post CML Comment:** Combines the `pytest` output and the poisoning report into a single comment on the PR.
-
-## 🚀 Experiment Results
-
-The CI pipeline automatically runs the experiments. The `validation_accuracy_clean` metric shows the model's performance on the *original, clean data* after being trained on the *poisoned data*.
-
-The CML report posted to the PR will look similar to this:
-
-### 🧪 Poisoning Experiment Results (Experiment: iris-decision-tree-tuning)
-
-| Poisoning %   |   Max Depth |   Accuracy (on Clean Data) |   Accuracy (on Train Data) |
-|:--------------|------------:|---------------------------:|---------------------------:|
-| 0.0%          |          10 |                   1        |                   1        |
-| 0.0%          |           3 |                   0.973684 |                   0.973684 |
-| 5.0%          |          10 |                   1        |                   1        |
-| 5.0%          |           3 |                   0.980263 |                   0.960526 |
-| 10.0%         |          10 |                   0.986842 |                   1        |
-| 10.0%         |           3 |                   0.980263 |                   0.960526 |
-| 50.0%         |          10 |                   0.947368 |                   1        |
-| 50.0%         |           3 |                   0.953947 |                   0.75     |
-
-### Observations
-
-As shown in the (example) results, even 5-10% poisoning causes a significant drop in accuracy. At 50% poisoning, the model's performance on clean data becomes the worst, demonstrating the critical vulnerability of the training process to data quality.
+<!-- end list -->
