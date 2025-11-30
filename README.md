@@ -1,33 +1,36 @@
-# MLOps Week-9 Assignment: Model Fairness & Explainability
+# MLOps Week-10 Assignment: LLM Fine-Tuning with Vertex AI
 
-This project expands on the previous MLOps pipeline by introducing concepts of **Bias, Fairness, and Explainability**. The core of this week's work involves analyzing the model's behavior using **SHAP** and **Fairlearn** to ensure transparency and detect potential biases.
+This project expands on the MLOps pipeline by integrating **Generative AI** workflows. The core of this week's work involves fine-tuning the **Gemma 3** foundation model using Google Cloud Vertex AI to perform classification on the Iris dataset.
 
-The primary work for this assignment is contained in `explainability.ipynb`.
+The primary work for this assignment is contained in the new `fine_tuning/` directory.
 
-## 🛡️ New Concepts & Tools
+## 🧠 New Concepts & Tools
 
-* **Synthetic "Location" Attribute:** A new random feature (values `0` and `1`) was introduced to the Iris dataset to test the model's robustness against irrelevant features.
-* **Fairlearn:** Used to audit the model for bias, treating "location" as a sensitive attribute to ensure predictions remain fair across different groups.
-* **SHAP (SHapley Additive exPlanations):** Utilized to explain individual predictions and understand global feature importance, specifically analyzing why the model classifies certain samples as *Virginica*.
+* **LLM Fine-Tuning (Vertex AI):** Utilized Vertex AI Model Garden to fine-tune a parameter-efficient version of Gemma 3.
+* **Prompt Engineering & Data Formatting:** Converted tabular data into a chat-based JSONL format (`system`, `user`, `assistant` roles) to make it compatible with LLM training.
+* **Comparative Analysis (Raw vs. Descriptive):** Trained two distinct model versions to test the LLM's reasoning capabilities:
+    * **V1 (Raw):** Uses the original floating-point numbers (e.g., "Sepal Length: 5.1").
+    * **V2 (Descriptive):** Uses discretized semantic descriptions (e.g., "Sepal Length is Low") to exploit the LLM's language understanding.
 
 ## 📂 Updated Project Structure
 
-The project structure remains largely the same, with the addition of the analysis notebook:
+A new folder `fine_tuning/` has been added to isolate the GenAI workflow:
 
 ```text
-├── explainability.ipynb  # New: Contains Fairlearn and SHAP analysis
-├── data/                 # Data directory
-├── train.py              # Existing training script
+├── fine_tuning/
+│   ├── 01_data_preparation.ipynb     # Prepares V1 & V2 JSONL datasets for Vertex AI
+│   ├── 02_inference_comparison.ipynb # Downloads models, runs local inference & evaluation
+│   ├── requirements.txt              # Dependencies for the fine-tuning environment
+│   └── ...
+├── data/                             # Original Data directory
 └── ... (other files)
-````
+```
 
 ## 🚀 Key Insights & Objectives
 
-The `explainability.ipynb` notebook addresses the following objectives:
+The `fine_tuning/` notebooks address the following objectives:
 
-1.  **Fairness Analysis:** Incorporates a `MetricFrame` from Fairlearn to compare metrics (Accuracy, Precision, Recall, Selection Rate) across the randomly assigned "location" groups.
-      * *Goal:* Verify that the random "location" attribute does not skew model performance or selection rates.
-2.  **Model Explainability:** Generates SHAP summary and force plots to visualize feature contributions.
-      * *Observation:* The plots for the **Virginica** class demonstrate that the "location" feature has negligible impact on model output, confirming the model correctly identified it as noise.
-
-<!-- end list -->
+1.  **Data Transformation:** The `01_data_preparation.ipynb` notebook converts the `iris.csv` dataset into the specific `messages` format required by Gemma, creating separate training and testing sets for both experiments.
+2.  **Fine-Tuning Workflow:** Successfully submitted and monitored two separate fine-tuning jobs on Vertex AI to adapt Gemma 3 for a classification task.
+3.  **Model Evaluation:** The `02_inference_comparison.ipynb` notebook downloads the fine-tuned adapters and runs local inference using the `transformers` library.
+      * *Goal:* Compare the Accuracy and F1-scores of the **Raw Numeric** model vs. the **Descriptive Text** model to determine which data representation the LLM handles better.
